@@ -7,12 +7,14 @@ import dropbox
 
 import bing_provider
 import nasa_apod_provider
+import natgeo_provider
+
 from config import *
 from retry_deco import retry
 
 TMP_DIR = "~/pending_bing_upload"
 
-providers = [bing_provider, nasa_apod_provider]
+providers = [bing_provider, nasa_apod_provider, natgeo_provider]
 
 
 def upload_dbx(token, data, path):
