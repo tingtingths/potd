@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 # Save photo of the day to dropbox
+import imghdr
 import os
+import uuid
 from urllib.request import urlopen
 
 import dropbox
@@ -8,7 +10,6 @@ import dropbox
 import bing_provider
 import nasa_apod_provider
 import natgeo_provider
-
 from config import *
 from retry_deco import retry
 
@@ -28,8 +29,12 @@ def do():
     for provider in providers:
         url = provider.fetch_url()
         name = os.path.basename(url)
+
         with urlopen(url) as in_f:
             b = in_f.read()
+
+        if name is None or name.strip() == "":
+            name = "{}.{}".format(uuid.uuid4(), imghdr.what(None, b))
 
         try:
             upload_dbx(DBX_TOKEN, b, os.path.join(DBX_PATH, name))
