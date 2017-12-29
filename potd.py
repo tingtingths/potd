@@ -12,16 +12,23 @@ import nasa_apod_provider
 import natgeo_provider
 from config import *
 from retry_deco import retry
+import logging
+
+formatter = logging.Formatter('[%(levelname)s] %(asctime)s | %(message)s')
+sh = logging.StreamHandler()
+sh.setFormatter(formatter)
+logging.getLogger('').addHandler(sh)
+logging.getLogger('').setLevel(logging.INFO)
 
 TMP_DIR = "~/pending_bing_upload"
 
 providers = [bing_provider, nasa_apod_provider, natgeo_provider]
-
+log = logging.getLogger("")
 
 def upload_dbx(token, data, path):
     dbx = dropbox.Dropbox(token)
     result = dbx.files_upload(data, path)
-    print("upload done, name: " + result.name)
+    log.info("upload done, name: " + result.name)
 
 
 @retry(tries=10, delay=10)
@@ -48,16 +55,16 @@ def do():
                             upload_dbx(DBX_TOKEN, b, DBX_PATH + basename)
                             os.remove(os.path.join(root, f))
                         except Exception as e:
-                            print(e)
+                            log.exception(e)
         except Exception as e:
-            print(e)
+            log.exception(e)
             # save to local and try again next time
-            print("Wait for retry next time...")
+            log.warning("Wait for retry next time...")
             if not os.path.exists(TMP_DIR):
                 os.makedirs(TMP_DIR)
             with open(os.path.join(TMP_DIR, name), "wb") as out:
                 out.write(b)
-            print("Saved")
+            log.warning("Saved")
 
 
 if __name__ == "__main__":

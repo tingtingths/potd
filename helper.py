@@ -7,7 +7,7 @@ def fetch_and_parse(base_url, pattern):
     url = None
     regex = re.compile(pattern)
 
-    with urlopen(base_url) as in_f:
+    with urlopen(base_url, timeout=5) as in_f:
         charset = in_f.headers.get_content_charset()
         iter = regex.finditer(in_f.read().decode("utf-8" if charset is None else charset))
         try:
