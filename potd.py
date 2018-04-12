@@ -28,6 +28,7 @@ TMP_DIR = "~/pending_bing_upload"
 providers = [bing_provider, nasa_apod_provider, natgeo_provider]
 log = logging.getLogger("")
 
+
 def upload_dbx(token, data, path):
     dbx = dropbox.Dropbox(token)
     result = dbx.files_upload(data, path)
@@ -36,6 +37,8 @@ def upload_dbx(token, data, path):
 
 @retry(tries=10, delay=10)
 def do():
+    dbx_token = DBX_TOKEN if env_token() is None else env_token()
+    dbx_path = DBX_PATH if env_path() is None else env_path()
     for provider in providers:
         url = provider.fetch_url()
         name = os.path.basename(url)
@@ -49,7 +52,7 @@ def do():
             name = "{}.{}".format(uuid.uuid4(), imghdr.what(None, b))
 
         try:
-            upload_dbx(DBX_TOKEN, b, os.path.join(DBX_PATH, name))
+            upload_dbx(dbx_token, b, os.path.join(dbx_path, name))
             if os.path.exists(TMP_DIR):
                 for root, dirs, files in os.walk(TMP_DIR):
                     for f in files:
@@ -57,7 +60,7 @@ def do():
                         with open(os.path.join(root, f), "rb") as _in:
                             b = _in.read()
                         try:
-                            upload_dbx(DBX_TOKEN, b, DBX_PATH + basename)
+                            upload_dbx(dbx_token, b, dbx_path + basename)
                             os.remove(os.path.join(root, f))
                         except Exception as e:
                             log.exception(e)
