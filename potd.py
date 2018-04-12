@@ -1,18 +1,21 @@
 #!/usr/bin/python3
 # Save photo of the day to dropbox
 import imghdr
+import logging
 import os
+import sys
+import time
 import uuid
 from urllib.request import urlopen
 
 import dropbox
+import schedule
 
 import bing_provider
 import nasa_apod_provider
 import natgeo_provider
 from config import *
 from retry_deco import retry
-import logging
 
 formatter = logging.Formatter('[%(levelname)s] %(asctime)s | %(message)s')
 sh = logging.StreamHandler()
@@ -36,6 +39,8 @@ def do():
     for provider in providers:
         url = provider.fetch_url()
         name = os.path.basename(url)
+
+        log.info('fetch_url={}'.format(url))
 
         with urlopen(url) as in_f:
             b = in_f.read()
@@ -68,4 +73,13 @@ def do():
 
 
 if __name__ == "__main__":
-    do()
+    if len(sys.argv) > 1 and sys.argv[1] == 'schedule':
+        # start daemon for internal schedule
+        log.info('Setup internal scheduler...')
+        schedule.every().day.at('20:00').do(do)
+        [log.info("JOB - %s", str(job)) for job in schedule.jobs]
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
+    else:
+        do()
