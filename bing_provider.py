@@ -16,7 +16,9 @@ def fetch_url():
     with urlopen(urlparse.urljoin(base_url, json_url)) as in_f:
         json_obj = json.loads(in_f.read().decode("UTF-8"))
 
-    return json_obj if json_obj is None else urlparse.urljoin(base_url, json_obj["images"][0]["url"])
+    url = None if json_obj is None else urlparse.urljoin(base_url, json_obj["images"][0]["url"])
+    name = urlparse.parse_qs(urlparse.urlparse(url).query)['id'][0]
+    return url, name
 
 
 if __name__ == "__main__":

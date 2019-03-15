@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+import os
 from helper import fetch_and_parse
 from retry_deco import retry
 
@@ -6,7 +8,8 @@ from retry_deco import retry
 def fetch_url():
     base_url = "http://www.nationalgeographic.com/photography/photo-of-the-day/"
     pattern = "<meta\s+property=\"og:image\"\s+content=\"(.*?)\".*/>"
-    return fetch_and_parse(base_url, pattern)
+    url = fetch_and_parse(base_url, pattern)
+    return url, os.path.basename(url)
 
 
 if __name__ == "__main__":
