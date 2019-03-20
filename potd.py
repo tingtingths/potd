@@ -40,7 +40,10 @@ def do():
     dbx_token = DBX_TOKEN if env_token() is None else env_token()
     dbx_path = DBX_PATH if env_path() is None else env_path()
     for provider in providers:
-        url, name = provider.fetch_url()
+        try:
+            url, name = provider.fetch_url()
+        except:
+            continue
 
         log.info('fetch_url={}'.format(url))
 
