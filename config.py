@@ -4,7 +4,7 @@ import os
 DBX_TOKEN = "<dropbox token>"
 DBX_PATH = "<dropbox path for upload>"
 
-GDRIVE_FOLDER_ID = "1LBxKE0KCBMVA8xkTiYjMmWEkRe99pZNK"
+GDRIVE_FOLDER_ID = "<folder_id>"
 
 formatter = logging.Formatter('[%(levelname)s] %(asctime)s | %(message)s')
 sh = logging.StreamHandler()
