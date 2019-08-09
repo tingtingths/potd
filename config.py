@@ -4,6 +4,7 @@ import os
 DBX_TOKEN = "<dropbox token>"
 DBX_PATH = "<dropbox path for upload>"
 
+GDRIVE_FOLDER_ID = "1LBxKE0KCBMVA8xkTiYjMmWEkRe99pZNK"
 
 formatter = logging.Formatter('[%(levelname)s] %(asctime)s | %(message)s')
 sh = logging.StreamHandler()
@@ -12,7 +13,6 @@ logging.getLogger('').addHandler(sh)
 logging.getLogger('').setLevel(logging.INFO)
 
 TMP_DIR = ".pending"
-OUT_DIR = "/potd_out"
 
 log = logging.getLogger("")
 

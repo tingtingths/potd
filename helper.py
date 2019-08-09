@@ -1,8 +1,11 @@
 import re
 import os
+import logging
 from urllib.parse import urljoin
 from urllib.request import urlopen
 
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
 from dropbox import dropbox
 
 from config import log
@@ -39,3 +42,34 @@ def write_to_file(path, filename, bin):
     log.info('write file done, name: ' + filename)
 
     return os.path.join(path, filename)
+
+
+def gauth():
+    gauth = GoogleAuth()
+    # Create local webserver and auto handles authentication.
+    gauth.LocalWebserverAuth()
+
+    return gauth
+
+
+def _gdrive_get_file(drive, folder_id, title):
+    file_list = drive.ListFile({'q': "'" + folder_id + "' in parents and trashed=False"}).GetList()
+    for f in file_list:
+        if f['title'] == title:
+            return f
+
+    return None
+
+
+def upload_gdrive(folder_id, local_file):
+    drive = GoogleDrive(gauth())
+    name = os.path.basename(local_file)
+
+    gfile = _gdrive_get_file(drive, folder_id, name)
+    if gfile is None:
+        gfile = drive.CreateFile({
+            'title': name,
+            'parents': [{'id': folder_id}]
+        })
+    gfile.SetContentFile(local_file)
+    gfile.Upload()
