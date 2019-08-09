@@ -1,44 +1,22 @@
 #!/usr/bin/python3
 # Save photo of the day to dropbox
 import imghdr
-import logging
 import os
 import sys
 import time
 import uuid
-from urllib.request import urlopen
 
-import dropbox
 import schedule
 
-import bing_provider
-import nasa_apod_provider
-import natgeo_provider
-from config import *
+from helper import *
 from retry_deco import retry
-
-formatter = logging.Formatter('[%(levelname)s] %(asctime)s | %(message)s')
-sh = logging.StreamHandler()
-sh.setFormatter(formatter)
-logging.getLogger('').addHandler(sh)
-logging.getLogger('').setLevel(logging.INFO)
-
-TMP_DIR = "~/pending_bing_upload"
-
-providers = [bing_provider, nasa_apod_provider, natgeo_provider]
-log = logging.getLogger("")
-
-
-def upload_dbx(token, data, path):
-    dbx = dropbox.Dropbox(token)
-    result = dbx.files_upload(data, path)
-    log.info("upload done, name: " + result.name)
 
 
 @retry(tries=10, delay=10)
 def do():
-    dbx_token = DBX_TOKEN if env_token() is None else env_token()
-    dbx_path = DBX_PATH if env_path() is None else env_path()
+    dbx_token = env('DBX_TOKEN', DBX_TOKEN)
+    dbx_path = env('DBX_PATH', DBX_PATH)
+    out_dir = env('OUT_DIR', OUT_DIR)
     for provider in providers:
         try:
             url, name = provider.fetch_url()
@@ -53,8 +31,12 @@ def do():
         if name is None or name.strip() == "":
             name = "{}.{}".format(uuid.uuid4(), imghdr.what(None, b))
 
+        if not os.path.exists(TMP_DIR):
+            os.makedirs(TMP_DIR)
+
+        write_to_file(TMP_DIR, name, b)
+
         try:
-            upload_dbx(dbx_token, b, os.path.join(dbx_path, name))
             if os.path.exists(TMP_DIR):
                 for root, dirs, files in os.walk(TMP_DIR):
                     for f in files:
@@ -62,19 +44,14 @@ def do():
                         with open(os.path.join(root, f), "rb") as _in:
                             b = _in.read()
                         try:
-                            upload_dbx(dbx_token, b, dbx_path + basename)
+                            #upload_dbx(dbx_token, b, dbx_path + basename)
+                            write_to_file(out_dir, basename, b)
                             os.remove(os.path.join(root, f))
                         except Exception as e:
                             log.exception(e)
         except Exception as e:
             log.exception(e)
-            # save to local and try again next time
-            log.warning("Wait for retry next time...")
-            if not os.path.exists(TMP_DIR):
-                os.makedirs(TMP_DIR)
-            with open(os.path.join(TMP_DIR, name), "wb") as out:
-                out.write(b)
-            log.warning("Saved")
+            log.warning("Retry next time...")
 
 
 if __name__ == "__main__":

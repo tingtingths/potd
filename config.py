@@ -1,16 +1,28 @@
+import logging
+import bing_provider
+import nasa_apod_provider
+import natgeo_provider
+
+
 DBX_TOKEN = "<dropbox token>"
 DBX_PATH = "<dropbox path for upload>"
 
 
-def env_token():
-    import os
-    if 'DBX_TOKEN' not in os.environ:
-        return None
-    return os.environ['DBX_TOKEN']
+formatter = logging.Formatter('[%(levelname)s] %(asctime)s | %(message)s')
+sh = logging.StreamHandler()
+sh.setFormatter(formatter)
+logging.getLogger('').addHandler(sh)
+logging.getLogger('').setLevel(logging.INFO)
+
+TMP_DIR = ".pending"
+OUT_DIR = "/potd_out"
+
+providers = [bing_provider, nasa_apod_provider, natgeo_provider]
+log = logging.getLogger("")
 
 
-def env_path():
+def env(key, default=None):
     import os
-    if 'DBX_PATH' not in os.environ:
-        return None
-    return os.environ['DBX_PATH']
+    if key not in os.environ:
+        return default
+    return os.environ[key]
