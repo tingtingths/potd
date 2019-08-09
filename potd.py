@@ -1,15 +1,21 @@
 #!/usr/bin/python3
 # Save photo of the day to dropbox
 import imghdr
-import os
 import sys
 import time
 import uuid
-
+import os
 import schedule
 
 from helper import *
+from config import *
 from retry_deco import retry
+
+import bing_provider
+import natgeo_provider
+import nasa_apod_provider
+
+providers = [bing_provider, nasa_apod_provider, natgeo_provider]
 
 
 @retry(tries=10, delay=10)

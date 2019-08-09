@@ -1,9 +1,11 @@
 import re
 import os
-from config import *
-import dropbox
 from urllib.parse import urljoin
 from urllib.request import urlopen
+
+from dropbox import dropbox
+
+from config import log
 
 
 def fetch_and_parse(base_url, pattern):
@@ -29,7 +31,7 @@ def upload_dbx(token, data, path):
 
 def write_to_file(path, filename, bin):
     if not os.path.exists(path):
-        os.makedirs(pathq)
+        os.makedirs(path)
 
     with open(os.path.join(path, filename), "wb") as out:
         out.write(bin)
