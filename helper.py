@@ -36,4 +36,6 @@ def write_to_file(path, filename, bin):
     with open(os.path.join(path, filename), "wb") as out:
         out.write(bin)
 
+    log.info('write file done, name: ' + filename)
+
     return os.path.join(path, filename)
