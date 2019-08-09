@@ -6,6 +6,6 @@ COPY * /app/
 
 RUN pip3 --no-cache-dir install -r /app/requirements.txt
 
-WORKDIR /appg
+WORKDIR /app
 
 CMD ["python3", "-u", "/app/potd.py", "schedule"]
