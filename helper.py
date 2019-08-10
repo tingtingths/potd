@@ -46,9 +46,7 @@ def write_to_file(path, filename, bin):
 
 def gauth():
     gauth = GoogleAuth()
-    # Create local webserver and auto handles authentication.
-    gauth.LocalWebserverAuth()
-
+    gauth.CommandLineAuth()
     return gauth
 
 
