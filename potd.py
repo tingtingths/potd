@@ -86,7 +86,7 @@ if __name__ == "__main__":
     else:
         # start daemon for internal schedule
         log.info('Setup internal scheduler...')
-        schedule.every(args.interval).hour.do(do, storage, args.base_dir)
+        schedule.every(args.interval).hours.do(do, storage, args.base_dir)
         [log.info("JOB - %s", str(job)) for job in schedule.jobs]
         while True:
             schedule.run_pending()
