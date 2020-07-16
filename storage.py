@@ -30,6 +30,21 @@ class StorageProvider(ABC):
         pass
 
 
+class LocalFSProvider(StorageProvider):
+
+    def auth(self):
+        pass
+
+    def get(self, base: str, filename: str):
+        with open(os.path.join(base, filename), 'rb') as f:
+            b = f.read()
+        return b
+
+    def put(self, base: str, filename: str, data: bytes):
+        with open(os.path.join(base, filename), 'wb') as f:
+            f.write(data)
+
+
 class DropboxProvider(StorageProvider):
     dbx = None
 
