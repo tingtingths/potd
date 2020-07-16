@@ -1,5 +1,5 @@
 import os
-import uuid
+import tempfile
 from abc import ABC, abstractmethod
 from urllib.parse import urljoin
 
@@ -84,9 +84,14 @@ class GoogleDriveProvider(StorageProvider):
                 'parents': [{'id': base}]
             })
 
-        tmp_file_name = uuid.uuid4().hex
-        with open(tmp_file_name, 'rb') as tmp_file:
-            tmp_file.write(data)
-        gfile.SetContentFile(tmp_file_name)
-        gfile.Upload()
-        os.remove(tmp_file_name)
+        fd, name = tempfile.mkstemp()
+        try:
+            with open(name, 'wb') as tmp:
+                tmp.write(data)
+            os.close(fd)
+
+            gfile.SetContentFile(name)
+            gfile.Upload()
+        finally:
+            os.close(fd)
+            os.remove(name)
