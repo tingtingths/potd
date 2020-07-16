@@ -4,8 +4,8 @@ import logging
 from urllib.parse import urljoin
 from urllib.request import urlopen
 
-from pydrive.auth import GoogleAuth
-from pydrive.drive import GoogleDrive
+from pydrive2.auth import GoogleAuth
+from pydrive2.drive import GoogleDrive
 from dropbox import dropbox
 
 from config import log

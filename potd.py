@@ -1,19 +1,18 @@
 #!/usr/bin/python3
-# Save photo of the day to dropbox
+# Save picture of the day
+import argparse
 import imghdr
-import sys
 import time
 import uuid
-import os
+
 import schedule
 
-from helper import *
-from config import *
-from retry_deco import retry
-
 import bing_provider
-import natgeo_provider
 import nasa_apod_provider
+import natgeo_provider
+from config import *
+from helper import *
+from retry_deco import retry
 
 providers = [bing_provider, nasa_apod_provider, natgeo_provider]
 
@@ -50,8 +49,8 @@ def do():
                         with open(os.path.join(root, f), "rb") as _in:
                             b = _in.read()
                         try:
-                            #upload_dbx(dbx_token, b, dbx_path + basename)
-                            #write_to_file(out_dir, basename, b)
+                            # upload_dbx(dbx_token, b, dbx_path + basename)
+                            # write_to_file(out_dir, basename, b)
                             upload_gdrive(gdrive_folder, os.path.join(root, f))
                             os.remove(os.path.join(root, f))
                         except Exception as e:
@@ -62,17 +61,27 @@ def do():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Picture of the day.')
+    parser.add_argument('--storage', choices=['dropbox', 'gdrive', 'local'],
+                        help='Storage provider', required=True)
+    parser.add_argument('--base-dir', type=str,
+                        help='Place to keep the images. If you\'re using Google Drive, this would be the folder ID. '
+                             'Otherwise, the folder path.', required=True)
+    parser.add_argument('--interval', '-i', type=int,
+                        help='Interval in hours to retrieve images. This will also enable the internal scheduler, '
+                             'thus making the script runs indefinitely. '
+                             'Do not use this if you intend to use external scheduler, e.g. cron')
+
+    args = parser.parse_args()
     logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
 
-    gauth()
-
-    if len(sys.argv) > 1 and sys.argv[1] == 'schedule':
+    if args.interval is None:
+        do()
+    else:
         # start daemon for internal schedule
         log.info('Setup internal scheduler...')
-        schedule.every().day.at('20:00').do(do)
+        schedule.every(args.interval).hour.do(do)
         [log.info("JOB - %s", str(job)) for job in schedule.jobs]
         while True:
             schedule.run_pending()
             time.sleep(1)
-    else:
-        do()
