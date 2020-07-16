@@ -1,11 +1,21 @@
-FROM python:alpine3.6
+FROM python:3.8-slim-buster as builder
 
 RUN mkdir -p /app
 
 COPY * /app/
 
-RUN pip3 --no-cache-dir install -r /app/requirements.txt
+WORKDIR /app
+
+RUN pip install --upgrade pip
+
+RUN pip install --target=/install -r /app/requirements.txt
+
+FROM python:3.8-alpine3.12
+
+COPY --from=builder /install /usr/local/lib/python3.8/site-packages
+
+COPY * /app/
 
 WORKDIR /app
 
-CMD ["python3", "-u", "/app/potd.py", "schedule"]
+CMD ["python3", "-u", "/app/potd.py"]
