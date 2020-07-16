@@ -3,7 +3,6 @@
 .pending/
 
 # pydrive auth
-settings.yaml
 credentials.json
 
 # Byte-compiled / optimized / DLL files

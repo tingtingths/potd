@@ -15,6 +15,7 @@ class StorageProvider(ABC):
 
     def create(self, **kwargs):
         self._args = kwargs
+        return self
 
     @abstractmethod
     def auth(self):
