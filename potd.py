@@ -27,6 +27,15 @@ def _write_to_file(path, filename, b):
     return os.path.join(path, filename)
 
 
+def valid_time_str(s):
+    try:
+        from datetime import datetime
+        datetime.strptime(s, "%H:%M")
+        return s
+    except ValueError:
+        raise argparse.ArgumentTypeError(f'Invalid time format {s}')
+
+
 @retry(attempts=10, delay=10)
 def do(fs: StorageProvider, base: str):
     for source in sources:
@@ -65,8 +74,10 @@ if __name__ == "__main__":
     parser.add_argument('--base-dir', type=str,
                         help='Place to keep the images. If you\'re using Google Drive, this would be the folder ID. '
                              'Otherwise, the folder path.', required=True)
-    parser.add_argument('--interval', '-i', type=int,
-                        help='Interval in hours to retrieve images. This will also enable the internal scheduler, '
+    parser.add_argument('--at-time', '-t', type=valid_time_str,
+                        help='Time string indicating the time to retrieve images, '
+                             'in the following format HH:MM. '
+                             'This will also enable the internal scheduler, '
                              'thus making the script runs indefinitely. '
                              'Do not use this if you intend to use external scheduler, e.g. cron')
     parser.add_argument('--dropbox-token', type=str, help='Authentication token for Dropbox')
@@ -81,12 +92,12 @@ if __name__ == "__main__":
         storage = GoogleDriveProvider().create()
     storage.auth()
 
-    if args.interval is None:
+    if args.at_time is None:
         do(storage, args.base_dir)
     else:
         # start daemon for internal schedule
         log.info('Setup internal scheduler...')
-        schedule.every(args.interval).hours.do(do, storage, args.base_dir)
+        schedule.every().day.at(args.at_time).do(do, storage, args.base_dir)
         schedule.run_all() # run now
         [log.info("JOB - %s", str(job)) for job in schedule.jobs]
         while True:
