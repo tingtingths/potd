@@ -70,19 +70,21 @@ class DropboxProvider(StorageProvider):
 class GoogleDriveProvider(StorageProvider):
     drive = None
 
-    def auth(self):
+    def auth(self, oauth=False):
         gauth = GoogleAuth()
-        gauth.CommandLineAuth()
+        if oauth:
+            gauth.LocalWebserverAuth()
+        else:
+            gauth.CommandLineAuth()
         self.drive = GoogleDrive(gauth)
 
     def get(self, base: str, filename: str):
         if self.drive is None:
             raise RuntimeError('No authorized Google Drive instance found.')
 
-        files = self.drive.ListFile({
-            'q': f'\'{base}\' in parents and trashed=False'
+        found = self.drive.ListFile({
+            'q': f'\'{base}\' in parents and title=\'{filename}\' and trashed=False'
         }).GetList()
-        found = list(filter(lambda f: f['title'] == filename, files))
 
         if len(found) > 0:
             return found[0]

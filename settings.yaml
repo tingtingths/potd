@@ -1,7 +1,4 @@
-client_config_backend: settings
-client_config:
-  client_id: <oauth2_client_id>
-  client_secret: <oauth2_client_secret>
+client_config_backend: file
 
 save_credentials: True
 save_credentials_backend: file

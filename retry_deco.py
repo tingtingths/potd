@@ -1,4 +1,5 @@
 import time
+import traceback
 
 
 def retry(attempts=4, delay=2):  # 2 seconds
@@ -11,6 +12,7 @@ def retry(attempts=4, delay=2):  # 2 seconds
                 except Exception as e:
                     _attempts -= 1
                     print("Error at retry(): {0} attempt(s) left.\n  {1}  ".format(str(_attempts), str(e)))
+                    traceback.print_exc()
                     if _attempts != 0:
                         time.sleep(delay)
 

@@ -36,10 +36,12 @@ def valid_time_str(s):
         raise argparse.ArgumentTypeError(f'Invalid time format {s}')
 
 
-@retry(attempts=10, delay=10)
 def do(fs: StorageProvider, base: str):
     for source in sources:
         data, name = source.fetch_image()
+
+        if data is None:
+            continue
 
         if name is None or name.strip() == "":
             name = "{}.{}".format(uuid.uuid4(), imghdr.what(None, data))
@@ -49,22 +51,22 @@ def do(fs: StorageProvider, base: str):
 
         _write_to_file(TMP_DIR, name, data)
 
-    # upload everything from the tmp directory
-    try:
-        if os.path.exists(TMP_DIR):
-            for root, dirs, files in os.walk(TMP_DIR):
-                for f in files:
-                    filename = os.path.basename(f)
-                    with open(os.path.join(root, f), "rb") as _in:
-                        b = _in.read()
-                    try:
-                        fs.put(base, filename, b)
-                        os.remove(os.path.join(root, f))
-                    except Exception as e:
-                        log.exception(e)
-    except Exception as e:
-        log.exception(e)
-        log.warning("Retry next time...")
+        # upload everything from the tmp directory
+        try:
+            if os.path.exists(TMP_DIR):
+                for root, dirs, files in os.walk(TMP_DIR):
+                    for f in files:
+                        filename = os.path.basename(f)
+                        with open(os.path.join(root, f), "rb") as _in:
+                            b = _in.read()
+                        try:
+                            fs.put(base, filename, b)
+                            os.remove(os.path.join(root, f))
+                        except Exception as e:
+                            log.exception(e)
+        except Exception as e:
+            log.exception(e)
+            log.warning("Retry next time...")
 
 
 if __name__ == "__main__":

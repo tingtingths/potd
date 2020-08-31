@@ -17,7 +17,10 @@ class POTDSource(ABC):
 
     @abstractmethod
     def fetch_image(self) -> (bytes, str):
-        pass
+        url, name = self.image_url()
+        if url is not None:
+            return self._fetch(url), name
+        return None, None
 
     def _fetch_and_parse(self, base_url, pattern):
         url = None
@@ -41,10 +44,6 @@ class POTDSource(ABC):
 
         return b
 
-    def fetch_image(self) -> (bytes, str):
-        url, name = self.image_url()
-        return self._fetch(url), name
-
 
 class BingSource(POTDSource):
 
@@ -56,7 +55,7 @@ class BingSource(POTDSource):
             json_obj = json.loads(in_f.read().decode("UTF-8"))
 
         url = None if json_obj is None else urljoin(base_url, json_obj["images"][0]["url"])
-        name = parse_qs(urlparse(url).query)['id'][0]
+        name = None if url is None else parse_qs(urlparse(url).query)['id'][0]
 
         return url, name
 
@@ -71,7 +70,9 @@ class NASASource(POTDSource):
         base_url = "https://apod.nasa.gov/apod"
         pattern = "<a href=\"(image/.*)\""
         url = self._fetch_and_parse(base_url, pattern)
-        return url, os.path.basename(url)
+        if url is not None:
+            return url, os.path.basename(url)
+        return None, None
 
     @retry(attempts=5, delay=5)
     def fetch_image(self) -> (bytes, str):
@@ -84,7 +85,9 @@ class NatGeoSource(POTDSource):
         base_url = "http://www.nationalgeographic.com/photography/photo-of-the-day/"
         pattern = "<meta\s+property=\"og:image\"\s+content=\"(.*?)\".*/>"
         url = self._fetch_and_parse(base_url, pattern)
-        return url, os.path.basename(url)
+        if url is not None:
+            return url, os.path.basename(url)
+        return None, None
 
     @retry(attempts=5, delay=5)
     def fetch_image(self) -> (bytes, str):
