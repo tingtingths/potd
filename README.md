@@ -1,4 +1,17 @@
-Usage
+# potd
+Save photo of the day to cloud storage.
+
+Sources
+  - Bing
+  - NASA
+  - National Geographic
+
+Storages
+  - Google Drive
+  - Dropbox
+  - local
+
+## Usage
 ```sh
 usage: potd.py [-h] --storage {dropbox,gdrive,local} --base-dir BASE_DIR [--at-time AT_TIME]
                [--dropbox-token DROPBOX_TOKEN]
