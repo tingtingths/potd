@@ -20,4 +20,4 @@ COPY * /app/
 
 WORKDIR /app
 
-CMD ["python3", "-u", "/app/potd.py"]
+ENTRYPOINT ["python3", "-u", "/app/potd.py"]

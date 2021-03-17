@@ -109,6 +109,7 @@ class GoogleDriveProvider(StorageProvider):
 
             gfile.SetContentFile(name)
             gfile.Upload()
+            log.info(f'[{type(self).__name__}] Uploaded. name={filename}')
         finally:
             os.close(fd)
             os.remove(name)
