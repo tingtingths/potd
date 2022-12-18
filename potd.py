@@ -4,12 +4,12 @@ import argparse
 import imghdr
 import time
 import uuid
+from datetime import date
 
 import schedule
 
 from config import *
 from potd_source import *
-from retry_deco import retry
 from storage import StorageProvider, DropboxProvider, GoogleDriveProvider
 
 sources = [BingSource(), NatGeoSource(), NASASource()]
@@ -36,7 +36,7 @@ def valid_time_str(s):
         raise argparse.ArgumentTypeError(f'Invalid time format {s}')
 
 
-def do(fs: StorageProvider, base: str):
+def download_pictures_from_sources(fs: StorageProvider, base: str, group_by_date: bool = False):
     for source in sources:
         data, name = source.fetch_image()
 
@@ -46,10 +46,11 @@ def do(fs: StorageProvider, base: str):
         if name is None or name.strip() == "":
             name = "{}.{}".format(uuid.uuid4(), imghdr.what(None, data))
 
-        if not os.path.exists(TMP_DIR):
-            os.makedirs(TMP_DIR)
+        download_dir = os.path.join(TMP_DIR, date.strftime(date.today(), '%Y-%m-%d')) if group_by_date else TMP_DIR
+        if not os.path.exists(download_dir):
+            os.makedirs(download_dir)
 
-        _write_to_file(TMP_DIR, name, data)
+        _write_to_file(download_dir, name, data)
 
         # upload everything from the tmp directory
         try:
@@ -83,6 +84,7 @@ if __name__ == "__main__":
                              'thus making the script runs indefinitely. '
                              'Do not use this if you intend to use external scheduler, e.g. cron')
     parser.add_argument('--dropbox-token', type=str, help='Authentication token for Dropbox')
+    parser.add_argument('--group-by-date', action='store_true', help='Download to dated folder')
 
     args = parser.parse_args()
     logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
@@ -95,12 +97,13 @@ if __name__ == "__main__":
     storage.auth()
 
     if args.at_time is None:
-        do(storage, args.base_dir)
+        download_pictures_from_sources(storage, args.base_dir, group_by_date=args.group_by_date)
     else:
         # start daemon for internal schedule
         log.info('Setup internal scheduler...')
-        schedule.every().day.at(args.at_time).do(do, storage, args.base_dir)
-        schedule.run_all() # run now
+        schedule.every().day.at(args.at_time).do(download_pictures_from_sources, storage, args.base_dir,
+                                                 group_by_date=args.group_by_date)
+        schedule.run_all()  # run now
         [log.info("JOB - %s", str(job)) for job in schedule.jobs]
         while True:
             schedule.run_pending()
